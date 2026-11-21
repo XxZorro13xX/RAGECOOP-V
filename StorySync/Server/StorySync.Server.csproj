@@ -1,0 +1,44 @@
+<!-- StorySync server resource — RAGECOOP Legacy, net6.0.
+     Build AFTER building RAGECOOP itself (see ../BUILD.md).
+     Output is a single StorySync.dll. It MUST be named StorySync.dll
+     and sit in a folder named StorySync: the server loader builds the
+     assembly path as <folder>\<folder>.dll, i.e.
+     Resources\Server\StorySync\StorySync.dll.
+     All RAGECOOP/SHVDN references are Private=false on purpose: the
+     server loads resources with PreferSharedTypes, and a second copy
+     of RageCoop.Core.dll / RageCoop.Server.dll in the resource folder
+     would break type identity (Client, CustomEventReceivedArgs, ...). -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>StorySync</AssemblyName>
+    <RootNamespace>StorySync.Server</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Override on the command line if your clone lives elsewhere:
+         dotnet build -p:RageCoopRoot=C:\path\to\RAGECOOP-V -->
+    <RageCoopRoot Condition="'$(RageCoopRoot)' == ''">..\..\RAGECOOP-V-draythianna</RageCoopRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="MissionSyncServer.cs" />
+    <Compile Include="..\Shared\StorySyncEvents.cs" Link="StorySyncEvents.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RageCoop.Core: CustomEvents.Hash + Logger. Built from source. -->
+    <ProjectReference Include="$(RageCoopRoot)\RageCoop.Core\RageCoop.Core.csproj" Private="false" />
+    <!-- RageCoop.Server: ServerScript, API, Client. Reference the DLL
+         built by the RAGECOOP build (bin\<Config>\Server\).
+         TODO: verify — if your RAGECOOP build puts RageCoop.Server.dll
+         elsewhere, point this HintPath at the built DLL. -->
+    <Reference Include="RageCoop.Server" Private="false">
+      <HintPath>$(RageCoopRoot)\bin\$(Configuration)\Server\RageCoop.Server.dll</HintPath>
+    </Reference>
+    <!-- No ScriptHookVDotNet reference needed: this script never touches
+         GTA types directly (the position arg is read as an opaque object
+         and only logged). The server host already loads the SHVDN stub. -->
+  </ItemGroup>
+
+</Project>

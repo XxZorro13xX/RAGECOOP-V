@@ -1,0 +1,46 @@
+<!-- StorySync client resource — RAGECOOP Legacy, net48.
+     Build AFTER building RAGECOOP itself (see ../BUILD.md).
+     Output is a single StorySync.Client.dll. Copy ONLY that DLL into
+     <GTA V>\Resources\Client\StorySync\ on the server machine — the
+     server zips the folder and sends it to connecting clients.
+     All RAGECOOP/SHVDN references are Private=false on purpose: the
+     client process already has those assemblies loaded, and copying a
+     second RageCoop.Core.dll into the resource would break type
+     identity when the loader reflects over it. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>StorySync.Client</AssemblyName>
+    <RootNamespace>StorySync.Client</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <LangVersion>7.3</LangVersion>
+    <!-- Override on the command line if your clone lives elsewhere:
+         dotnet build -p:RageCoopRoot=C:\path\to\RAGECOOP-V -->
+    <RageCoopRoot Condition="'$(RageCoopRoot)' == ''">..\..\RAGECOOP-V-draythianna</RageCoopRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="MissionSyncClient.cs" />
+    <Compile Include="..\Shared\StorySyncEvents.cs" Link="StorySyncEvents.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RageCoop.Core: CustomEvents.Hash + Logger. Built from source. -->
+    <ProjectReference Include="$(RageCoopRoot)\RageCoop.Core\RageCoop.Core.csproj" Private="false" />
+    <!-- RageCoop.Client: ClientScript + Scripting.API. Reference the DLL
+         built by the RAGECOOP build (bin\<Config>\Client\Scripts\RageCoop\).
+         TODO: verify — if your RAGECOOP build puts RageCoop.Client.dll
+         elsewhere, point this HintPath at the built DLL. -->
+    <Reference Include="RageCoop.Client" Private="false">
+      <HintPath>$(RageCoopRoot)\bin\$(Configuration)\Client\Scripts\RageCoop\RageCoop.Client.dll</HintPath>
+    </Reference>
+    <!-- ScriptHookVDotNet3: GTA.Game / GTA.UI / GTA.Math. -->
+    <Reference Include="ScriptHookVDotNet3" Private="false">
+      <HintPath>$(RageCoopRoot)\libs\ScriptHookVDotNet3.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" Private="false" />
+  </ItemGroup>
+
+</Project>

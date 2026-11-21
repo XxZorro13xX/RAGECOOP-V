@@ -1,0 +1,1992 @@
+{
+  "version": 1,
+  "generated": "2026-11-21",
+  "game": "GTA V Legacy (GTA5.exe)",
+  "base": "Draythianna/RAGECOOP-V at 5df09a5 \u2014 StorySync v2",
+  "status": "Untested in-game. No dotnet on this Linux VM; client is net48/Windows-only. First live test is the watcher log + 2-player vote test in CUTSCENE_VOTE_V2.md.",
+  "confidenceLevels": {
+    "cross-checked": "Cutscene name seen in the decompiled mission script AND in DurtyFree cutsceneNames.json AND the autosplitter label agrees.",
+    "verified": "Cutscene name seen in the decompiled mission script AND in DurtyFree cutsceneNames.json.",
+    "script-only": "Cutscene name seen in the decompiled mission script but NOT in cutsceneNames.json. Do not use for playback until verified in-game."
+  },
+  "fieldNotes": {
+    "name": "Canonical cutscene name, lowercase \u2014 what REQUEST_CUTSCENE wants. Cutscene names are case-insensitive in the game; nameAsInScript keeps the script's original case.",
+    "actors": "Cutscene entity handle strings from REGISTER_ENTITY_FOR_CUTSCENE in the mission script. These are the scene's internal handle names (e.g. 'Lamar', 'Jimmys_Car'), NOT ped model names. actorsScope 'per-cutscene' means the handles were in the same function that requests this scene; 'mission-level' means they were seen in the script but could not be attributed to one scene. null means no handles were found for this scene.",
+    "origin": "World XYZ the cutscene plays from. Always null in v1 of this map \u2014 no fetched source carries it (fivemad's browser is a JS app with no data in the fetched HTML). Fill from the CutsceneWatcher log (player position when the cutscene fires) or from fivemad manually.",
+    "durationMs": "Always null in v1 \u2014 same reason as origin. Fill from the watcher log (start/end GameTime) or fivemad.",
+    "playbackLists": "REQUEST_CUTSCENE_WITH_PLAYBACK_LIST indices seen in the script, verbatim. null means the script only ever requests the scene plain (flags 8).",
+    "flagsSeen": "Flags argument seen on REQUEST_CUTSCENE calls for this scene (usually 8)."
+  },
+  "sources": {
+    "decompiled-script": "Sainan/GTA-V-Decompiled-Scripts (master, fetched 2026-11-21) \u2014 decompiled_scripts/<missionScript>.c; ground truth for which cutscenes a mission requests.",
+    "autosplitter": "hoXyy/GTAV-AutoSplitter GTAV-Auto-Splitter.asl (fetched 2026-11-21) \u2014 vars.missions (mission IDs) and vars.cutsceneNames (cutscene -> mission-segment labels).",
+    "cutsceneNames.json": "DurtyFree/gta-v-data-dumps cutsceneNames.json (fetched 2026-11-21) \u2014 807 entries, 772 unique names; used only to confirm a name exists in the game files.",
+    "gta-wiki": "GTA Wiki, Missions in GTA V (gta.fandom.com/wiki/Missions_in_GTA_V, read 2026-11-21) \u2014 mission order, descriptions, protagonists.",
+    "fivemad": "fivemad Cutscene Browser (fivemad.com/docs/tools/cutscenes) \u2014 cited as the manual lookup for actors / length / world position; its pages are a JS app and carry no cutscene data in the fetched HTML, so nothing from it is in this map."
+  },
+  "missions": [
+    {
+      "missionId": 53,
+      "missionScript": "prologue1",
+      "displayName": "Prologue",
+      "protagonist": "Michael, Trevor (2004)",
+      "playOrder": 1,
+      "confidence": "high",
+      "notes": "Set in Ludendorff, North Yankton, 2004. Michael, Trevor and Brad rob a bank.",
+      "sources": [
+        "decompiled-script:prologue1.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "pro_mcs_1",
+          "nameAsInScript": "pro_mcs_1",
+          "order": 1,
+          "description": "Bank interior: hostages tied up, security guard subdued.",
+          "condition": "intro \u2014 bank robbery in progress",
+          "actors": [
+            "Michaels_weapon",
+            "PRO_Male_Hostage_1",
+            "PRO_Male_Hostage_2",
+            "PRO_SecurityGuard_Tiedup",
+            "Trevor",
+            "Trevors_weapon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            4,
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "pro_mcs_2",
+          "nameAsInScript": "pro_mcs_2",
+          "order": 2,
+          "description": "Bank interior, continued.",
+          "condition": "after pro_mcs_1",
+          "actors": [
+            "Michaels_weapon",
+            "Trevor",
+            "Trevors_weapon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "pro_mcs_3_pt1",
+          "nameAsInScript": "pro_mcs_3_pt1",
+          "order": 3,
+          "description": "Security guard grabs Michael.",
+          "condition": "after pro_mcs_2",
+          "actors": [
+            "Michaels_weapon",
+            "PRO_SecurityGuard_Grabs_mike",
+            "Trevor",
+            "Trevors_weapon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "pro_mcs_5",
+          "nameAsInScript": "pro_mcs_5",
+          "order": 4,
+          "description": "Getting in the getaway vehicle.",
+          "condition": "getaway \u2014 requested with playback lists 57 and 62",
+          "actors": [
+            "Brad",
+            "Michael",
+            "PRO_COP_Shooting_car",
+            "PRO_Cop_Driving_Car",
+            "PRO_Getaway_driver",
+            "Trevor",
+            "Trevors_weapon",
+            "chase_cop_car",
+            "getaway_car"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            57,
+            62
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Prologue: Getting in getaway vehicle",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "pro_mcs_6",
+          "nameAsInScript": "pro_mcs_6",
+          "order": 5,
+          "description": "The train crossing; Brad is shot.",
+          "condition": "after the getaway",
+          "actors": [
+            "Brad",
+            "Brads_Shotgun",
+            "Daves_Rifle",
+            "Michael",
+            "Michaels_weapon",
+            "Trevor",
+            "Trevors_Heist_Bag",
+            "Trevors_weapon",
+            "getaway_car"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            4,
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Prologue: The Train",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "pro_mcs_7_concat",
+          "nameAsInScript": "PRO_MCS_7_Concat",
+          "order": 6,
+          "description": "Trevor flees Ludendorff.",
+          "condition": "outro",
+          "actors": [
+            "1st_car",
+            "2nd_car",
+            "3rd_car",
+            "Trevors_weapon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            2,
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Prologue: Trevor Flees",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 0,
+      "missionScript": "armenian1",
+      "displayName": "Franklin and Lamar",
+      "protagonist": "Franklin",
+      "playOrder": 2,
+      "confidence": "high",
+      "notes": "Franklin and Lamar repossess two sports cars for Simeon. Dynamic cutscene names resolved from sLocal_2772/2773/2774 assignments in armenian1.c.",
+      "sources": [
+        "decompiled-script:armenian1.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "armenian_1_int",
+          "nameAsInScript": "armenian_1_int",
+          "order": 1,
+          "description": "Intro at Simeon's dealership.",
+          "condition": "mission start",
+          "actors": [
+            "Lamar"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "armenian_1_mcs_1",
+          "nameAsInScript": "armenian_1_mcs_1",
+          "order": 2,
+          "description": "Speak to Simeon.",
+          "condition": "after the intro",
+          "actors": [
+            "Franklin_stealcar",
+            "Jimmy",
+            "Jimmys_Car",
+            "Lamar",
+            "Siemon",
+            "bjxl^1",
+            "ninef^1"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Franklin & Lamar: Speak to Simeon",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "arm_1_mcs_2_concat",
+          "nameAsInScript": "arm_1_mcs_2_concat",
+          "order": 3,
+          "description": "Franklin at home, changes shirt (closet doors, shirt).",
+          "condition": "outro",
+          "actors": [
+            "Closet_Door_L",
+            "Closet_Door_R",
+            "Franklins_shirt"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 1,
+      "missionScript": "armenian2",
+      "displayName": "Repossession",
+      "protagonist": "Franklin",
+      "playOrder": 3,
+      "confidence": "high",
+      "notes": "Franklin and Lamar repossess a bike from a Vagos member. Dynamic name sLocal_1972 resolves to Armenian_2_int / Armenian_2_mcs_6.",
+      "sources": [
+        "decompiled-script:armenian2.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "armenian_2_int",
+          "nameAsInScript": "Armenian_2_int",
+          "order": 1,
+          "description": "Start of the mission.",
+          "condition": "mission start",
+          "actors": [
+            "Lamar",
+            "Siemon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Reposession",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "arm_2_mcs_4",
+          "nameAsInScript": "Arm_2_mcs_4",
+          "order": 2,
+          "description": "Confronted by Vagos.",
+          "condition": "mid-mission",
+          "actors": [
+            "Franklins_weapon",
+            "Lamar",
+            "Lamars_weapon",
+            "Mexgoon_1"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Reposession: Confronted by Vagos",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "armenian_2_mcs_6",
+          "nameAsInScript": "Armenian_2_mcs_6",
+          "order": 3,
+          "description": "Bike repossession scene.",
+          "condition": "after the Vagos confrontation",
+          "actors": [
+            "Armenian_bike",
+            "Lamar"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 40,
+      "missionScript": "franklin0",
+      "displayName": "Chop",
+      "protagonist": "Franklin",
+      "playOrder": 4,
+      "confidence": "medium",
+      "notes": "Lamar and Franklin kidnap D with Chop's help. Cutscenes after the intro are loaded by the proximity helper func_77 (REQUEST_CUTSCENE when the player enters a trigger zone), so per-scene actors could not be attributed from the request site; the handles listed are mission-level. fra_0_mcs_5_p1 has no autosplitter label and its scene is unknown.",
+      "sources": [
+        "decompiled-script:franklin0.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "fra_0_int",
+          "nameAsInScript": "fra_0_int",
+          "order": 1,
+          "description": "Start of the mission.",
+          "condition": "mission start \u2014 requested with playback lists 13 and 14",
+          "actors": [
+            "Chop",
+            "Franklin",
+            "Lamar"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            13,
+            14
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Chop",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "fra_0_mcs_1",
+          "nameAsInScript": "fra_0_mcs_1",
+          "order": 2,
+          "description": "Confront D in the alley.",
+          "condition": "mid-mission (proximity-loaded)",
+          "actors": [
+            "Ballas_OG",
+            "BallasOG_Bike",
+            "Chop",
+            "Franklin",
+            "Hoodrat_girl",
+            "Kidnapping_van",
+            "Lamar"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Chop: Confront D in Alley",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "fra_0_mcs_4_p2_t3",
+          "nameAsInScript": "FRA_0_MCS_4_P2_T3",
+          "order": 3,
+          "description": "Put D in the van.",
+          "condition": "after confronting D",
+          "actors": [
+            "Ballas_OG",
+            "BallasOG_Bike",
+            "Chop",
+            "Franklin",
+            "Hoodrat_girl",
+            "Kidnapping_van",
+            "Lamar"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Chop: Put D in Van",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "fra_0_mcs_5_p1",
+          "nameAsInScript": "fra_0_mcs_5_p1",
+          "order": 4,
+          "description": "Unknown scene \u2014 in the script via the proximity loader, no autosplitter label.",
+          "condition": "unknown",
+          "actors": [
+            "Ballas_OG",
+            "BallasOG_Bike",
+            "Chop",
+            "Franklin",
+            "Hoodrat_girl",
+            "Kidnapping_van",
+            "Lamar"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 2,
+      "missionScript": "armenian3",
+      "displayName": "Complications",
+      "protagonist": "Franklin (Michael introduced)",
+      "playOrder": 5,
+      "confidence": "medium",
+      "notes": "Franklin breaks into Michael's house to repossess Jimmy's car; Michael is hiding in the back seat. The autosplitter only tracks the intro and the Simeon fight \u2014 the house/chase scenes (mcs_3 to mcs_7, mcs_9) are in the script but have no autosplitter label, and their in-mission order is numeric order in the script, not play-tested.",
+      "sources": [
+        "decompiled-script:armenian3.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "armenian_3_int",
+          "nameAsInScript": "Armenian_3_int",
+          "order": 1,
+          "description": "Start of the mission at the dealership.",
+          "condition": "mission start",
+          "actors": [
+            "Showroom_Car",
+            "Siemon",
+            "customer"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Complications",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_3",
+          "nameAsInScript": "Armenian_3_mcs_3",
+          "order": 2,
+          "description": "House interior sequence (tennis coach).",
+          "condition": "after the intro \u2014 shared function with mcs_4/mcs_5",
+          "actors": [
+            "Amanda",
+            "Jimmy",
+            "TennisCoach",
+            "Tracy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_4",
+          "nameAsInScript": "Armenian_3_mcs_4",
+          "order": 3,
+          "description": "House interior sequence (tennis coach).",
+          "condition": "after mcs_3 \u2014 shared function",
+          "actors": [
+            "Amanda",
+            "Jimmy",
+            "TennisCoach",
+            "Tracy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_5",
+          "nameAsInScript": "Armenian_3_mcs_5",
+          "order": 4,
+          "description": "House interior sequence (tennis coach).",
+          "condition": "after mcs_4 \u2014 shared function",
+          "actors": [
+            "Amanda",
+            "Jimmy",
+            "TennisCoach",
+            "Tracy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_6",
+          "nameAsInScript": "Armenian_3_mcs_6",
+          "order": 5,
+          "description": "Chase/escape with Michael in the car.",
+          "condition": "after the house sequence",
+          "actors": [
+            "Franklin",
+            "Jimmys_Car",
+            "Michael"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_7",
+          "nameAsInScript": "Armenian_3_mcs_7",
+          "order": 6,
+          "description": "Chase/escape, continued.",
+          "condition": "after mcs_6",
+          "actors": [
+            "Franklins_Car",
+            "Michael"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_8",
+          "nameAsInScript": "Armenian_3_mcs_8",
+          "order": 7,
+          "description": "Start of the Simeon fight.",
+          "condition": "after the chase",
+          "actors": [
+            "Franklin",
+            "Jimmys_Car",
+            "Siemon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            4,
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Complications: Start Simeon Fight",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "armenian_3_mcs_9_concat",
+          "nameAsInScript": "Armenian_3_MCS_9_concat",
+          "order": 8,
+          "description": "Outro (Simeon, Jimmy's car).",
+          "condition": "mission end",
+          "actors": [
+            "Jimmys_Car",
+            "Siemon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 17,
+      "missionScript": "family1",
+      "displayName": "Father/Son",
+      "protagonist": "Michael (+ Franklin)",
+      "playOrder": 6,
+      "confidence": "medium",
+      "notes": "Michael and Franklin rescue Jimmy and the yacht. First Michael-playable mission. The EXT_2 / EXT_ALT2 / EXT_ALT3 scenes are exterior variants whose trigger condition is unknown from the script alone.",
+      "sources": [
+        "decompiled-script:family1.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "family_1_int",
+          "nameAsInScript": "family_1_int",
+          "order": 1,
+          "description": "Intro \u2014 Michael and Franklin at the house.",
+          "condition": "mission start \u2014 also requested with playback list 254",
+          "actors": [
+            "Franklin",
+            "Michael"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            254
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "fam_1_mcs_2",
+          "nameAsInScript": "FAM_1_MCS_2",
+          "order": 2,
+          "description": "Arrive at Los Santos Customs.",
+          "condition": "mid-mission",
+          "actors": [
+            "Amandas_car",
+            "Franklin",
+            "Jimmy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Father/Son: Arrive at LSC",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "fam_1_ext_2",
+          "nameAsInScript": "FAM_1_EXT_2",
+          "order": 3,
+          "description": "Exterior shot (Amanda's car, Jimmy).",
+          "condition": "exterior variant \u2014 condition unknown",
+          "actors": [
+            "Amandas_car",
+            "Jimmy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "fam_1_ext_alt2",
+          "nameAsInScript": "FAM_1_EXT_ALT2",
+          "order": 4,
+          "description": "Alternate exterior shot.",
+          "condition": "alternate variant \u2014 condition unknown",
+          "actors": [
+            "AMANDAS_CAR",
+            "JIMMY"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "fam_1_ext_alt3",
+          "nameAsInScript": "FAM_1_EXT_ALT3",
+          "order": 5,
+          "description": "Alternate exterior shot.",
+          "condition": "alternate variant \u2014 condition unknown",
+          "actors": [
+            "AMANDAS_CAR",
+            "JIMMY"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 19,
+      "missionScript": "family3",
+      "displayName": "Marriage Counseling",
+      "protagonist": "Michael (+ Franklin)",
+      "playOrder": 7,
+      "confidence": "medium",
+      "notes": "Michael chases the tennis coach and pulls down a mansion. family_3_int is requested through the helper func_218 (plain, and with playback lists 1 and 24). family_3_ext's scene is unknown; per-scene actors could not be attributed, so handles are mission-level.",
+      "sources": [
+        "decompiled-script:family3.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "family_3_int",
+          "nameAsInScript": "family_3_int",
+          "order": 1,
+          "description": "Start of the mission.",
+          "condition": "mission start \u2014 requested plain and with playback lists 1 and 24",
+          "actors": [
+            "Franklin",
+            "Michael",
+            "TennisCoach",
+            "Racket_1",
+            "Racket_2",
+            "Madrazos_Car",
+            "Fam3_tow_truck"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            1,
+            24
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Marriage Counseling",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "fam_3_mcs_1",
+          "nameAsInScript": "fam_3_mcs_1",
+          "order": 2,
+          "description": "Pull down the house.",
+          "condition": "mid-mission",
+          "actors": [
+            "Franklin",
+            "Michael",
+            "TennisCoach",
+            "Racket_1",
+            "Racket_2",
+            "Madrazos_Car",
+            "Fam3_tow_truck"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Marriage Counseling: Pull down house",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "family_3_ext",
+          "nameAsInScript": "family_3_ext",
+          "order": 3,
+          "description": "Exterior shot \u2014 scene unknown.",
+          "condition": "unknown",
+          "actors": [
+            "Franklin",
+            "Michael",
+            "TennisCoach",
+            "Racket_1",
+            "Racket_2",
+            "Madrazos_Car",
+            "Fam3_tow_truck"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 18,
+      "missionScript": "family2",
+      "displayName": "Daddy's Little Girl",
+      "protagonist": "Michael",
+      "playOrder": 8,
+      "confidence": "medium",
+      "notes": "Michael takes Jimmy for a bike ride on Vespucci Beach, then goes to save Tracey on a yacht. family_2_mcs_4p2 is in the script (passed to the proximity loader func_98) but NOT in DurtyFree's cutsceneNames.json \u2014 do not use it for playback until it is verified in-game.",
+      "sources": [
+        "decompiled-script:family2.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "family_2_int",
+          "nameAsInScript": "family_2_int",
+          "order": 1,
+          "description": "Intro \u2014 Michael and Jimmy.",
+          "condition": "mission start",
+          "actors": [
+            "Jimmy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "family_2_mcs_2",
+          "nameAsInScript": "family_2_mcs_2",
+          "order": 2,
+          "description": "Finish the bike ride.",
+          "condition": "after the bike ride \u2014 requested with playback lists 5 and 6",
+          "actors": [
+            "FAM_2_Jimmys_bike",
+            "Jimmy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            5,
+            6
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "DLG: Finish Bike Ride",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "family_2_mcs_3",
+          "nameAsInScript": "family_2_mcs_3",
+          "order": 3,
+          "description": "Finish swimming.",
+          "condition": "after swimming",
+          "actors": [
+            "Girl_being_chatted_up",
+            "Girl_on_sofa",
+            "Guy_on_sofa",
+            "Man_getting_wood",
+            "Michaels_seashark",
+            "Porn_Dude",
+            "Porn_Dude^1",
+            "Porn_Dude_^1_seashark",
+            "Porn_Dude_seashark",
+            "Prop_MP3_Dock",
+            "Tracy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "DLG: Finish Swimming",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "family_2_mcs_4",
+          "nameAsInScript": "family_2_mcs_4",
+          "order": 4,
+          "description": "Tracey on the boat (with Jimmy and the seashark).",
+          "condition": "after swimming \u2014 also requested with playback list 2",
+          "actors": [
+            "Jimmy",
+            "Michaels_seashark",
+            "Tracy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            2
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "family_2_mcs_4p2",
+          "nameAsInScript": "family_2_mcs_4p2",
+          "order": 5,
+          "description": "Part 2 of the boat scene \u2014 script-only, NOT in the game's cutscene name list.",
+          "condition": "after mcs_4 (inferred from the name)",
+          "actors": [
+            "Jimmy",
+            "Michaels_seashark",
+            "Tracy"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "script-only",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 44,
+      "missionScript": "lester1",
+      "displayName": "Friend Request",
+      "protagonist": "Michael",
+      "playOrder": 9,
+      "confidence": "medium",
+      "notes": "Michael infiltrates Lifeinvader for Lester. LES_1B_MCS_1 (Tracy) is a separate branch/variant whose trigger condition is unknown; LES_1A_MCS_2 and LES_1A_MCS_4 have no autosplitter label.",
+      "sources": [
+        "decompiled-script:lester1.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "lester_1_int",
+          "nameAsInScript": "lester_1_int",
+          "order": 1,
+          "description": "Start of the mission.",
+          "condition": "mission start",
+          "actors": null,
+          "actorsScope": null,
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Friend Request",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "les_1a_mcs_0",
+          "nameAsInScript": "LES_1A_MCS_0",
+          "order": 2,
+          "description": "Clothes store.",
+          "condition": "after the intro",
+          "actors": [
+            "Michael",
+            "Shop_Assistant"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Friend Request: Clothes Store",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "les_1a_mcs_1",
+          "nameAsInScript": "LES_1A_MCS_1",
+          "order": 3,
+          "description": "Enter Lifeinvader.",
+          "condition": "after the clothes store",
+          "actors": [
+            "Life_invader_Engineer"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Friend Request: Enter Lifeinvader",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "les_1a_mcs_2",
+          "nameAsInScript": "LES_1A_MCS_2",
+          "order": 4,
+          "description": "Lifeinvader interior.",
+          "condition": "after entering Lifeinvader",
+          "actors": [
+            "LifeInvad_Chair",
+            "Life_invader_Engineer"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "les_1a_mcs_3",
+          "nameAsInScript": "LES_1A_MCS_3",
+          "order": 5,
+          "description": "Finish the popups.",
+          "condition": "after the interior scenes",
+          "actors": [
+            "LifeInvad_Chair",
+            "Life_invader_Engineer"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Friend Request: Finish popups",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "les_1a_mcs_4",
+          "nameAsInScript": "LES_1A_MCS_4",
+          "order": 6,
+          "description": "Lifeinvader, continued.",
+          "condition": "after mcs_3",
+          "actors": null,
+          "actorsScope": null,
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "les_1b_mcs_1",
+          "nameAsInScript": "LES_1B_MCS_1",
+          "order": 7,
+          "description": "Variant scene with Tracy.",
+          "condition": "branch/variant \u2014 condition unknown",
+          "actors": [
+            "Tracy"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 86,
+      "missionScript": "jewelry_setup1",
+      "displayName": "Casing the Jewel Store",
+      "protagonist": "Michael (+ Lester)",
+      "playOrder": 10,
+      "confidence": "high",
+      "notes": "Michael and Lester scout the Vangelico jewelry store. Per-scene actors could not be attributed (the request functions register nothing); the handles listed are mission-level.",
+      "sources": [
+        "decompiled-script:jewelry_setup1.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "jh_1_int",
+          "nameAsInScript": "Jh_1_int",
+          "order": 1,
+          "description": "Start of the mission.",
+          "condition": "mission start",
+          "actors": [
+            "Lester",
+            "Michael",
+            "Michaels_car",
+            "Jewellery_Assitance"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Casing the Jewel Store",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "jh_1_ig_3",
+          "nameAsInScript": "JH_1_IG_3",
+          "order": 2,
+          "description": "Greet the employee.",
+          "condition": "inside the store",
+          "actors": [
+            "Lester",
+            "Michael",
+            "Michaels_car",
+            "Jewellery_Assitance"
+          ],
+          "actorsScope": "mission-level",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Casing the Jewel Store: Greet Employee",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 90,
+      "missionScript": "jewelry_heist",
+      "displayName": "The Jewel Store Job",
+      "protagonist": "Michael, Franklin (+ crew)",
+      "playOrder": 11,
+      "confidence": "medium",
+      "notes": "The heist itself, in two approaches (2A and 2B). Which approach is Loud and which is Smart is NOT verified \u2014 the map only records approach A / approach B as named in the script. Dynamic cutscene names resolved from Local_3392.f_119-f_124 assignments. JH_2_ARREST_FAIL_C and JH_2_CELEB conditions are inferred from their names and are unverified.",
+      "sources": [
+        "decompiled-script:jewelry_heist.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "jh_2a_intp4",
+          "nameAsInScript": "JH_2A_INTp4",
+          "order": 1,
+          "description": "Heist intro, approach A.",
+          "condition": "mission start \u2014 approach A chosen; also requested with playback lists 71 and 120",
+          "actors": [
+            "Driver_selection",
+            "Franklin",
+            "Hacker_selection",
+            "Lester",
+            "WalkingStick_lester",
+            "gunman_selection_1",
+            "seamstress_near_door",
+            "seamstress_near_michael"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            71,
+            120
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "jh_2b_int",
+          "nameAsInScript": "jh_2b_int",
+          "order": 1,
+          "description": "Heist intro, approach B.",
+          "condition": "mission start \u2014 approach B chosen",
+          "actors": [
+            "Driver_selection",
+            "Franklin",
+            "Hacker_selection",
+            "Lester",
+            "WalkingStick_lester",
+            "gunman_selection_1",
+            "seamstress_near_door",
+            "seamstress_near_michael"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "jh_2a_mcs_1",
+          "nameAsInScript": "JH_2A_MCS_1",
+          "order": 2,
+          "description": "Inside the store, approach A.",
+          "condition": "after the approach A intro",
+          "actors": [
+            "HC_GUNMAN1_2_HANDEDWEAPON",
+            "HC_GUNMAN_2_HANDEDWEAPON",
+            "Michael",
+            "Michaels_2_handedweapon",
+            "customer_1_withassist_1",
+            "customer_2_withassist_2",
+            "driver_selection",
+            "gunman_selection_1",
+            "jewellery_Assitance",
+            "security",
+            "shop_assistant"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "jh_2b_mcs_1",
+          "nameAsInScript": "JH_2B_MCS_1",
+          "order": 2,
+          "description": "Inside the store, approach B.",
+          "condition": "after the approach B intro",
+          "actors": [
+            "BURRITO3",
+            "Franklin",
+            "HC_GUNMAN1_2_HANDEDWEAPON",
+            "HC_GUNMAN_2_HANDEDWEAPON",
+            "Jewellery_Assitance",
+            "Michaels_weapon",
+            "angry_customer",
+            "customer",
+            "driver_selection",
+            "gunman_selection_1",
+            "security_guard",
+            "shop_assistant"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "jh_2_fin_a_mcs4_a1",
+          "nameAsInScript": "Jh_2_fin_a_mcs4_a1",
+          "order": 3,
+          "description": "Escape, approach A.",
+          "condition": "after the store \u2014 shared function with the A1A2 finale",
+          "actors": [
+            "Franklins_Heist_Bike",
+            "Michael",
+            "Traffic_Warden"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "jh2_fina_mcs4_a1a2",
+          "nameAsInScript": "Jh2_fina_mcs4_a1a2",
+          "order": 3,
+          "description": "Leave the jewelry store (finale).",
+          "condition": "after the store",
+          "actors": [
+            "Franklins_Heist_Bike",
+            "Michael",
+            "Traffic_Warden"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Jewel Store Job: Leave Jewel Store",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "jh_2_arrest_fail_c",
+          "nameAsInScript": "JH_2_ARREST_FAIL_C",
+          "order": 4,
+          "description": "Arrest / fail scene.",
+          "condition": "played if arrested during the heist (inferred from the name \u2014 unverified)",
+          "actors": [
+            "Franklin",
+            "driver_selection",
+            "drivers_bati",
+            "drivers_bike",
+            "franklins_getaway_bati",
+            "franklins_getaway_bike",
+            "gunman_selection_1",
+            "gunmans_bati",
+            "gunmans_bike"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "jh_2_celeb",
+          "nameAsInScript": "JH_2_CELEB",
+          "order": 5,
+          "description": "Celebration scene.",
+          "condition": "played on heist success (inferred from the name \u2014 unverified)",
+          "actors": [
+            "gunman_selection_1"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 62,
+      "missionScript": "trevor1",
+      "displayName": "Mr. Philips",
+      "protagonist": "Trevor",
+      "playOrder": 12,
+      "confidence": "high",
+      "notes": "Trevor's intro: discovers Michael is alive, kills Johnny Klebitz, takes over Blaine County. Unlocks Trevor as a playable character. TREVOR_1_INT is requested with playback lists 8183, 8180 and 8176 (verbatim from the script).",
+      "sources": [
+        "decompiled-script:trevor1.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "trevor_1_int",
+          "nameAsInScript": "TREVOR_1_INT",
+          "order": 1,
+          "description": "Intro \u2014 Trevor, Johnny, Michael, Franklin, Ron, Wade, Ashley.",
+          "condition": "mission start \u2014 requested with playback lists 8183, 8180 and 8176",
+          "actors": [
+            "Ashley",
+            "Franklin",
+            "Johnny",
+            "Michael",
+            "Ron",
+            "Wade"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            8183,
+            8180,
+            8176
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        },
+        {
+          "name": "trv_1_mcs_1_p1",
+          "nameAsInScript": "TRV_1_MCS_1_P1",
+          "order": 2,
+          "description": "Finish the first drive (Lost MC / Wade / Ron).",
+          "condition": "after the intro",
+          "actors": [
+            "Clay",
+            "Clays_bike",
+            "Lost_Van",
+            "Lost_biker",
+            "Other_Lost_biker",
+            "Ron",
+            "Terry",
+            "Terrys_bike",
+            "Trevor",
+            "Trevors_car",
+            "Wade"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Mr. Phillips: Finish First Drive",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "trv_1_mcs_3_concat",
+          "nameAsInScript": "TRV_1_MCS_3_CONCAT",
+          "order": 3,
+          "description": "Smash the trailer (Ortega).",
+          "condition": "after the first drive",
+          "actors": [
+            "Ortega",
+            "Ortega_Trailer",
+            "Ron",
+            "Trevors_car",
+            "Trevors_weapon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Mr. Phillips: Smash Trailer",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "trv_1_mcs_4",
+          "nameAsInScript": "TRV_1_MCS_4",
+          "order": 4,
+          "description": "Outro (Ron, Trevor's car).",
+          "condition": "mission end",
+          "actors": [
+            "Ron",
+            "Trevors_car"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    },
+    {
+      "missionId": 63,
+      "missionScript": "trevor2",
+      "displayName": "Nervous Ron",
+      "protagonist": "Trevor",
+      "playOrder": 13,
+      "confidence": "medium",
+      "notes": "Trevor and Ron take over the arms business at Sandy Shores Airfield. TRV2_MCS_8 is in the script but has no autosplitter label; its scene is unknown beyond its handles (Ron, planes).",
+      "sources": [
+        "decompiled-script:trevor2.c",
+        "autosplitter",
+        "cutsceneNames.json",
+        "gta-wiki:Missions_in_GTA_V"
+      ],
+      "cutscenes": [
+        {
+          "name": "trevor_2_int",
+          "nameAsInScript": "trevor_2_int",
+          "order": 1,
+          "description": "Start of the mission.",
+          "condition": "mission start",
+          "actors": [
+            "Ron"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Start Nervous Ron",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "trv_2_mcs_4_concat",
+          "nameAsInScript": "trv_2_mcs_4_concat",
+          "order": 2,
+          "description": "Shoot down the chopper.",
+          "condition": "mid-mission \u2014 requested with playback lists 15 and 23",
+          "actors": null,
+          "actorsScope": null,
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            15,
+            23
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Nervous Ron: Shoot Down Chopper",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "trv_2_mcs_6",
+          "nameAsInScript": "TRV_2_MCS_6",
+          "order": 3,
+          "description": "Board the plane.",
+          "condition": "after the chopper",
+          "actors": [
+            "Lost_biker",
+            "Rons_Plane",
+            "Trevors_Plane",
+            "Trevors_weapon"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": null,
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "cross-checked",
+          "autosplitterLabel": "Nervous Ron: Board Plane",
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json",
+            "autosplitter"
+          ]
+        },
+        {
+          "name": "trv2_mcs_8",
+          "nameAsInScript": "TRV2_MCS_8",
+          "order": 4,
+          "description": "Plane sequence (Ron, Trevor, planes).",
+          "condition": "unknown \u2014 requested with playback list 3",
+          "actors": [
+            "Ron",
+            "Rons_plane",
+            "Trevor",
+            "Trevors_plane"
+          ],
+          "actorsScope": "per-cutscene",
+          "origin": null,
+          "originHeading": null,
+          "durationMs": null,
+          "playbackLists": [
+            3
+          ],
+          "flagsSeen": [
+            8
+          ],
+          "confidence": "verified",
+          "autosplitterLabel": null,
+          "sources": [
+            "decompiled-script",
+            "cutsceneNames.json"
+          ]
+        }
+      ]
+    }
+  ]
+}
