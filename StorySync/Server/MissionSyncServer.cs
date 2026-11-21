@@ -25,6 +25,7 @@
 // writes API.Host.
 
 using RageCoop.Core.Scripting;
+using RageCoop.Server;
 using RageCoop.Server.Scripting;
 using System;
 using System.Collections.Generic;
