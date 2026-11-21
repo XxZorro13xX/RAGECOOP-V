@@ -124,8 +124,8 @@ generally, and it applies here too.
 ### Players (Legacy GTA V, every player)
 
 1. Same Draythianna RAGECOOP Legacy build as the server.
-2. `ScriptHookV` (matching your game build) +
-   `ScriptHookVDotNet` 3.7.0 or later + `LemonUI SHVDN3` 2.2 or later.
+2. `ScriptHookV` (matching your game build — see the root README) +
+   `ScriptHookVDotNet` **v3.7.0-nightly or later** (no stable 3.7.0 yet; stable v3.6.0 breaks on game 1.0.3258.0+) + `LemonUI SHVDN3` 2.2 or later.
 3. In `ScriptHookVDotNet.ini` (GTA V root folder):
    `ScriptTimeoutThreshold=15000` — RAGECOOP is killed on startup
    as a "blocking script" at the default 5000.

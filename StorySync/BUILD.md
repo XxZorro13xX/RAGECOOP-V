@@ -4,7 +4,7 @@
 
 This Linux VM has **no `dotnet`**, and the client project targets
 **net48 (Windows-only)**. Do not try to build on this machine.
-Build on **Windows** (Visual Studio 2022 or `dotnet` 6 SDK), or via
+Build on **Windows** (Visual Studio 2022 or the **.NET 10 SDK** — do not install the .NET 6 SDK, it is end-of-support; the .NET 10 SDK can still build the `net6.0` server, with warning `NETSDK1138`), or via
 the RAGECOOP repo's GitHub Actions `windows-latest` workflow.
 
 ## Prerequisites (Windows)
@@ -19,12 +19,12 @@ the RAGECOOP repo's GitHub Actions `windows-latest` workflow.
   - `bin\Release\Server\RageCoop.Server.dll`
   - `libs\ScriptHookVDotNet3.dll` (already in the repo)
   - `RageCoop.Core` built from source (referenced as a project)
-- .NET 6.0 SDK (server, net6.0) and .NET Framework 4.8 targeting
+- .NET 10 SDK (server, `net6.0` — the .NET 10 SDK builds it, with warning `NETSDK1138`; .NET 6 itself is end-of-support since 12 Nov 2024) and .NET Framework 4.8 targeting
   pack / Developer Pack (client, net48).
-- ScriptHookVDotNet 3.7.0+ and LemonUI SHVDN3 2.2+ — these are
+- ScriptHookVDotNet v3.7.0-nightly+ and LemonUI SHVDN3 2.2+ — these are
   runtime requirements for players, and the `IsMissionActive`
   property used by the client was confirmed present in the repo's
-  `libs/ScriptHookVDotNet3.dll`.
+  `libs/ScriptHookVDotNet3.dll` (bundled 3.7.0.188).
 
 ## Build
 
