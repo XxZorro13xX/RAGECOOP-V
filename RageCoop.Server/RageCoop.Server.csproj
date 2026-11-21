@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <RepositoryUrl>https://github.com/RAGECOOP/RAGECOOP-V</RepositoryUrl>

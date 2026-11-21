@@ -4,7 +4,7 @@
 
 This Linux VM has **no `dotnet`**, and the client project targets
 **net48 (Windows-only)**. Do not try to build on this machine.
-Build on **Windows** (Visual Studio 2022 or the **.NET 10 SDK** — do not install the .NET 6 SDK, it is end-of-support; the .NET 10 SDK can still build the `net6.0` server, with warning `NETSDK1138`), or via
+Build on **Windows** (Visual Studio 2022 or the **.NET 10 SDK** — do not install the .NET 6 SDK, it is end-of-support), or via
 the RAGECOOP repo's GitHub Actions `windows-latest` workflow.
 
 ## Prerequisites (Windows)
@@ -19,7 +19,7 @@ the RAGECOOP repo's GitHub Actions `windows-latest` workflow.
   - `bin\Release\Server\RageCoop.Server.dll`
   - `libs\ScriptHookVDotNet3.dll` (already in the repo)
   - `RageCoop.Core` built from source (referenced as a project)
-- .NET 10 SDK (server, `net6.0` — the .NET 10 SDK builds it, with warning `NETSDK1138`; .NET 6 itself is end-of-support since 12 Nov 2024) and .NET Framework 4.8 targeting
+- .NET 10 SDK (server, `net10.0` — .NET 6 is end-of-support since 12 Nov 2024, so the server was retargeted to net10.0 in Nov 2026) and .NET Framework 4.8 targeting
   pack / Developer Pack (client, net48).
 - ScriptHookVDotNet v3.7.0-nightly+ and LemonUI SHVDN3 2.2+ — these are
   runtime requirements for players, and the `IsMissionActive`
@@ -53,7 +53,7 @@ dotnet build Client\StorySync.Client.csproj -c Release
 
 | Project | Output | Goes to |
 |---|---|---|
-| `StorySync.Server` (net6.0) | `Server\bin\Release\StorySync.dll` | `<server>\Resources\Server\StorySync\StorySync.dll` |
+| `StorySync.Server` (net10.0) | `Server\bin\Release\StorySync.dll` | `<server>\Resources\Server\StorySync\StorySync.dll` |
 | `StorySync.Client` (net48) | `Client\bin\Release\StorySync.Client.dll` | `<server>\Resources\Client\StorySync\StorySync.Client.dll` |
 
 Copy **only** those two DLLs into the resource folders — nothing
@@ -70,7 +70,7 @@ would otherwise load duplicate assemblies and break type identity
   `<Compile Include="..\Shared\..." Link="..." />` in each csproj.
   It references only `RageCoop.Core.Scripting.CustomEvents` (from the
   `RageCoop.Core` project reference) and the BCL.
-- Server project: `net6.0`, references `RageCoop.Core` (project) and
+- Server project: `net10.0`, references `RageCoop.Core` (project) and
   the built `RageCoop.Server.dll` (for `ServerScript`, `API`,
   `Client`). It needs no GTA/SHVDN reference — it never touches GTA
   types directly.

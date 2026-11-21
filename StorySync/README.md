@@ -190,7 +190,7 @@ StorySync/
   Shared/CutsceneMap.json    <- cutscene map, machine-readable (source of truth)
   Shared/CutsceneMap.cs      <- cutscene map, C# (generated from the JSON)
   Server/MissionSyncServer.cs
-  Server/StorySync.Server.csproj   (net6.0 -> StorySync.dll)
+  Server/StorySync.Server.csproj   (net10.0 -> StorySync.dll)
   Client/MissionSyncClient.cs
   Client/CutsceneWatcher.cs        <- prototype, NOT wired into the csproj yet (see CUTSCENE-WATCHER.md)
   Client/StorySync.Client.csproj   (net48 -> StorySync.Client.dll)

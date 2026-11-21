@@ -8,7 +8,7 @@
     ServerDir must point at a built server output folder.
   -->
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>StubSmoke</AssemblyName>
     <RootNamespace>StubSmoke</RootNamespace>
     <Nullable>disable</Nullable>

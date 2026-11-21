@@ -54,7 +54,7 @@ So on Enhanced the crash becomes a skipped slow-mo patch, not a startup crash. T
 ### d) Server / release infra
 - `AnnouncedAddress` setting + fallback in `Server.Background.cs` / `ServerInfo.cs` (use a No-IP hostname instead of detected public IP for master-server listing).
 - CI (`nightly-build.yaml`): builds on `windows-latest`, publishes one zip per branch to a family release — `main / dev-nightly / last-rel-nightly` → **Legacy**, `enhanced_*` → **Enhanced**. Includes installer in the zip, runs `tests/ShvdnStubCheck` and `tests/smoke-server.ps1` (server smoke test with a resource).
-- **Build note:** this Linux VM has no `dotnet`. Client is `net48`, Server is `net6.0`, Core is `netstandard2.0`. Build on Windows or via the GitHub Actions workflow, not here.
+- **Build note:** this Linux VM has no `dotnet`. Client is `net48`, Server is `net10.0` (retargeted from net6.0 Nov 2026 — the .NET 6 runtime is end-of-support and missing from the Actions runner, which killed the server smoke test), Core is `netstandard2.0`. Build on Windows or via the GitHub Actions workflow, not here.
 
 ## 4. What is NOT in Draythianna — the real work
 

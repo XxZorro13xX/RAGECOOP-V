@@ -1,4 +1,4 @@
-<!-- StorySync server resource — RAGECOOP Legacy, net6.0.
+<!-- StorySync server resource — RAGECOOP Legacy, net10.0.
      Build AFTER building RAGECOOP itself (see ../BUILD.md).
      Output is a single StorySync.dll. It MUST be named StorySync.dll
      and sit in a folder named StorySync: the server loader builds the
@@ -11,7 +11,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>StorySync</AssemblyName>
     <RootNamespace>StorySync.Server</RootNamespace>
