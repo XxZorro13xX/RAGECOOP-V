@@ -16,6 +16,10 @@
     <AssemblyName>StorySync</AssemblyName>
     <RootNamespace>StorySync.Server</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Files are listed explicitly below (incl. the linked Shared file),
+         so turn off the SDK's default *.cs glob — otherwise
+         MissionSyncServer.cs is counted twice (NETSDK1022). -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <!-- Override on the command line if your clone lives elsewhere:
          dotnet build -p:RageCoopRoot=C:\path\to\RAGECOOP-V -->
     <RageCoopRoot Condition="'$(RageCoopRoot)' == ''">..\..\RAGECOOP-V-draythianna</RageCoopRoot>

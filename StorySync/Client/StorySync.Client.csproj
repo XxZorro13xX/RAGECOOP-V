@@ -15,6 +15,11 @@
     <AssemblyName>StorySync.Client</AssemblyName>
     <RootNamespace>StorySync.Client</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Files are listed explicitly below (incl. the linked Shared file),
+         so turn off the SDK's default *.cs glob — otherwise
+         MissionSyncClient.cs is counted twice (NETSDK1022). This also
+         keeps CutsceneWatcher.cs out of the build (prototype, not wired in). -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <LangVersion>7.3</LangVersion>
     <!-- Override on the command line if your clone lives elsewhere:
          dotnet build -p:RageCoopRoot=C:\path\to\RAGECOOP-V -->
