@@ -1,0 +1,102 @@
+name: StorySync build and release
+
+# Builds RAGECOOP (Legacy) + StorySync on every push to main and on demand,
+# and publishes one zip to the "Legacy" family release, replacing the
+# previous zip for main. The zip contains the RAGECOOP Client / Installer /
+# Server plus the StorySync server and client DLLs in the server resource
+# layout, so a player only has to unzip and run the installer.
+#
+# NOTE: the base repo's nightly-build.yaml does the same for RAGECOOP alone
+# (no StorySync). This workflow is the StorySync one — keep both, or delete
+# nightly-build.yaml once this one is proven.
+#
+# The fork's Actions have not run yet (0 runs despite pushes to main) —
+# if this workflow never starts, check Settings > Actions > General on
+# https://github.com/XxZorro13xX/RAGECOOP-V and make sure Actions are enabled.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: storysync-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 10 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore NuGet packages (client uses packages.config)
+      run: nuget restore
+
+    - name: Build RAGECOOP client installer
+      run: dotnet build RageCoop.Client.Installer/RageCoop.Client.Installer.csproj --configuration Release
+
+    - name: Build RAGECOOP server
+      run: dotnet build RageCoop.Server/RageCoop.Server.csproj --configuration Release
+
+    - name: Build StorySync
+      run: dotnet build StorySync/StorySync.sln --configuration Release -p:RageCoopRoot=${{ github.workspace }}
+
+    - name: Smoke test server with StorySync resource
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path bin\Release\Server\Resources\Server\StorySync | Out-Null
+        Copy-Item StorySync\Server\bin\Release\StorySync.dll bin\Release\Server\Resources\Server\StorySync\StorySync.dll
+        New-Item -ItemType Directory -Force -Path bin\Release\Server\Resources\Client\StorySync | Out-Null
+        Copy-Item StorySync\Client\bin\Release\StorySync.Client.dll bin\Release\Server\Resources\Client\StorySync\StorySync.Client.dll
+        ./tests/smoke-server.ps1 -ServerDir bin\Release\Server
+
+    - name: Package
+      id: package
+      shell: pwsh
+      run: |
+        $stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmmss')
+        $zip = "Legacy_RageCOOP-V-StorySync-main-$stamp.zip"
+        $stage = Join-Path $env:RUNNER_TEMP 'package'
+        New-Item $stage -ItemType Directory -Force | Out-Null
+        foreach ($part in 'Client', 'Installer', 'Server') {
+          Copy-Item "bin/Release/$part" (Join-Path $stage $part) -Recurse
+        }
+        # StorySync DLLs, in the server resource layout (see StorySync/README.md)
+        New-Item -ItemType Directory -Force -Path (Join-Path $stage 'StorySync\Server') | Out-Null
+        Copy-Item StorySync\Server\bin\Release\StorySync.dll (Join-Path $stage 'StorySync\Server\StorySync.dll')
+        New-Item -ItemType Directory -Force -Path (Join-Path $stage 'StorySync\Client') | Out-Null
+        Copy-Item StorySync\Client\bin\Release\StorySync.Client.dll (Join-Path $stage 'StorySync\Client\StorySync.Client.dll')
+        Copy-Item StorySync\README.md (Join-Path $stage 'StorySync\README.md')
+        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip
+        "zip=$zip" >> $env:GITHUB_OUTPUT
+
+    - name: Publish to the Legacy release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      shell: pwsh
+      run: |
+        $zip = '${{ steps.package.outputs.zip }}'
+        gh release view Legacy *> $null
+        if ($LASTEXITCODE -ne 0) {
+          gh release create Legacy --title "Legacy builds" --latest=false --target '${{ github.sha }}' `
+            --notes "Automated builds with StorySync. Each zip is replaced when main is pushed."
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
+        $old = @(gh release view Legacy --json assets --jq '.assets[].name') | Where-Object {
+          $_ -ne $zip -and $_ -like "Legacy_RageCOOP-V-StorySync-main-*.zip"
+        }
+        gh release upload Legacy $zip
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        foreach ($name in $old) { gh release delete-asset Legacy $name --yes }
+        Write-Output "Uploaded $zip to release 'Legacy'; removed $($old.Count) older zip(s)"
