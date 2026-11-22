@@ -290,13 +290,30 @@ namespace RageCoop.Client.Installer
             try
             {
                 var zip = Path.Combine(work, "shv.zip");
-                HttpHelper.DownloadFile(url, zip, (p) => UpdateStatus("Downloading ScriptHookV " + p + "%"));
-                ZipFile.ExtractToDirectory(zip, work);
+                // dev-c.com rejects hotlinked downloads: without a Referer
+                // from its own download page it 302s to the homepage, and
+                // WebClient silently saves that HTML as the .zip — which
+                // then fails to extract ("End of Central Directory record
+                // could not be found"). The Referer is what makes this a
+                // real zip; the IsZipFile check is the safety net.
+                HttpHelper.DownloadFile(url, zip, (p) => UpdateStatus("Downloading ScriptHookV " + p + "%"), "https://dev-c.com/gtav/scripthookv/");
+                if (!HttpHelper.IsZipFile(zip)) { DownloadFailedManual("ScriptHookV", "https://dev-c.com/gtav/scripthookv/"); }
+                try { ZipFile.ExtractToDirectory(zip, work); }
+                catch (InvalidDataException) { DownloadFailedManual("ScriptHookV", "https://dev-c.com/gtav/scripthookv/"); }
                 CopyIfExists(Path.Combine(work, "ScriptHookV.dll"), Path.Combine(root, "ScriptHookV.dll"));
                 CopyIfExists(Path.Combine(work, "dinput8.dll"), Path.Combine(root, "dinput8.dll"));
                 if (!File.Exists(shvPath)) { throw new Exception("ScriptHookV.dll was not in the downloaded archive."); }
             }
             finally { TryDeleteDir(work); }
+        }
+
+        // The automatic download didn't produce a usable file. Tell the user
+        // exactly what to do by hand instead of showing a stack trace.
+        private void DownloadFailedManual(string name, string pageUrl)
+        {
+            MessageBox.Show("The automatic " + name + " download didn't work (the site returned something that isn't the file). Download it yourself from " + pageUrl + ", copy the files into the game folder, then run this installer again.");
+            Process.Start(pageUrl);
+            Environment.Exit(1);
         }
 
         private void InstallShvdnNightly(string root)
@@ -322,7 +339,9 @@ namespace RageCoop.Client.Installer
             {
                 var zip = Path.Combine(work, "shvdn.zip");
                 HttpHelper.DownloadFile(zipUrl, zip, (p) => UpdateStatus("Downloading ScriptHookVDotNet " + p + "%"));
-                ZipFile.ExtractToDirectory(zip, work);
+                if (!HttpHelper.IsZipFile(zip)) { DownloadFailedManual("ScriptHookVDotNet nightly", "https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases"); }
+                try { ZipFile.ExtractToDirectory(zip, work); }
+                catch (InvalidDataException) { DownloadFailedManual("ScriptHookVDotNet nightly", "https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases"); }
                 CopyIfExists(Path.Combine(work, "ScriptHookVDotNet3.dll"), Path.Combine(root, "ScriptHookVDotNet3.dll"));
                 CopyIfExists(Path.Combine(work, "ScriptHookVDotNet2.dll"), Path.Combine(root, "ScriptHookVDotNet2.dll"));
                 // Loader .asi — new nightlies call it ScriptHookVDotNet-Loader.asi.
