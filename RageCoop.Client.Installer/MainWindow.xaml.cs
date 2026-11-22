@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
+using Microsoft.Win32;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Path = System.IO.Path;
 using RageCoop.Core;
@@ -67,33 +71,10 @@ namespace RageCoop.Client.Installer
                 throw new InvalidOperationException("The installer is not meant to be run in the game folder, please extract the zip to somewhere else and run again.");
             }
             Directory.CreateDirectory(installPath);
-            if (!File.Exists(shvPath))
-            {
-                MessageBox.Show("Please install ScriptHookV first!");
-                Environment.Exit(1);
-            }
-            if (!File.Exists(shvdnPath))
-            {
-                MessageBox.Show("Please install ScriptHookVDotNet first!");
-                Environment.Exit(1);
-            }
-            var shvdnVer = GetVer(shvdnPath);
-            if (shvdnVer < new Version(3, 6, 0))
-            {
-                MessageBox.Show("Please update ScriptHookVDotNet to latest version!" +
-                    $"\nCurrent version is {shvdnVer}, 3.6.0 or higher is required");
-                Environment.Exit(1);
-            }
-            if (File.Exists(lemonPath))
-            {
-                var lemonVer = GetVer(lemonPath);
-                if (lemonVer < new Version(1, 7))
-                {
-                    UpdateStatus("Updating LemonUI");
-                    File.WriteAllBytes(lemonPath, getLemon());
-                }
-            }
 
+            // One-click setup: fetch anything that is missing or too old
+            // instead of telling the user to go and find it.
+            EnsurePrerequisites(root, shvPath, shvdnPath, scriptsPath, lemonPath);
 
             UpdateStatus("Removing old versions");
 
@@ -192,6 +173,223 @@ namespace RageCoop.Client.Installer
                 MessageBox.Show("Installation sucessful!");
                 Environment.Exit(0);
             }
+        }
+
+        // Minimum SHVDN the client was built against (bundled libs version).
+        // Anything older breaks script loading (e.g. 3.7.0.110 throws a
+        // NullReferenceException in GTA.Script..ctor for every script).
+        private static readonly Version MinShvdnVersion = new Version(3, 7, 0, 188);
+        private static readonly Version MinLemonVersion = new Version(2, 2, 0, 0);
+
+        // Game build -> "legacy_enhanced" part of the ScriptHookV zip name
+        // on dev-c.com, e.g. game 1.0.3889.0 -> ScriptHookV_3889.0_1158.13.zip.
+        // Add a row here when a new game build ships; unknown builds fall
+        // back to opening the download page instead of guessing a URL.
+        private static readonly Dictionary<string, string> ScriptHookVDownloads = new Dictionary<string, string>
+        {
+            { "3889", "3889.0_1158.13" }
+        };
+
+        private void EnsurePrerequisites(string root, string shvPath, string shvdnPath, string scriptsPath, string lemonPath)
+        {
+            bool needDotNet = !IsNet48OrLater();
+            bool needShv = !File.Exists(shvPath) || !ScriptHookMatchesGame(root, shvPath);
+            bool needShvdn = !File.Exists(shvdnPath) || GetVer(shvdnPath) < MinShvdnVersion;
+            bool needLemon = !File.Exists(lemonPath) || GetVer(lemonPath) < MinLemonVersion;
+
+            if (!needDotNet && !needShv && !needShvdn && !needLemon)
+            {
+                EnsureScriptTimeout(root);
+                return;
+            }
+
+            var missing = new List<string>();
+            if (needDotNet) { missing.Add(".NET Framework 4.8 runtime"); }
+            if (needShv) { missing.Add("ScriptHookV (matching your game build)"); }
+            if (needShvdn) { missing.Add("ScriptHookVDotNet nightly"); }
+            if (needLemon) { missing.Add("LemonUI 2.2"); }
+            if (MessageBox.Show("RAGECOOP needs the following first:\n\n- " + string.Join("\n- ", missing) +
+                "\n\nDownload and install them automatically?", "One-click setup", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                MessageBox.Show("Install them manually and run this installer again. The manual steps are in TESTING.md in the repo.");
+                Environment.Exit(1);
+            }
+
+            if (needDotNet) { InstallDotNet48(); }
+            if (needShv) { InstallScriptHookV(root, shvPath); }
+            if (needShvdn) { InstallShvdnNightly(root); }
+            if (needLemon)
+            {
+                UpdateStatus("Installing LemonUI 2.2");
+                Directory.CreateDirectory(scriptsPath);
+                File.WriteAllBytes(lemonPath, getLemon());
+            }
+            EnsureScriptTimeout(root);
+        }
+
+        private static bool IsNet48OrLater()
+        {
+            try
+            {
+                using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"))
+                {
+                    if (key == null) { return false; }
+                    var release = key.GetValue("Release") as int?;
+                    return release.HasValue && release.Value >= 528040;
+                }
+            }
+            catch { return false; }
+        }
+
+        private void InstallDotNet48()
+        {
+            const string url = "https://go.microsoft.com/fwlink/?LinkId=2085155"; // .NET Framework 4.8 web installer
+            UpdateStatus("Downloading .NET Framework 4.8");
+            var installer = Path.Combine(Path.GetTempPath(), "ndp48-web.exe");
+            try
+            {
+                HttpHelper.DownloadFile(url, installer, (p) => UpdateStatus("Downloading .NET Framework 4.8 " + p + "%"));
+                UpdateStatus("Installing .NET Framework 4.8 (follow the prompts)");
+                Process.Start(installer).WaitForExit();
+            }
+            catch
+            {
+                MessageBox.Show("Could not download .NET Framework 4.8. Get it from https://dotnet.microsoft.com/download/dotnet-framework/net48 and run this installer again.");
+                Process.Start("https://dotnet.microsoft.com/download/dotnet-framework/net48");
+                Environment.Exit(1);
+            }
+            if (!IsNet48OrLater())
+            {
+                MessageBox.Show(".NET Framework 4.8 is still not installed. Install it, then run this installer again.");
+                Environment.Exit(1);
+            }
+        }
+
+        private bool ScriptHookMatchesGame(string root, string shvPath)
+        {
+            try
+            {
+                var game = Version.Parse(FileVersionInfo.GetVersionInfo(Path.Combine(root, "GTA5.exe")).FileVersion);
+                return GetVer(shvPath).Build == game.Build;
+            }
+            catch { return false; }
+        }
+
+        private void InstallScriptHookV(string root, string shvPath)
+        {
+            var game = Version.Parse(FileVersionInfo.GetVersionInfo(Path.Combine(root, "GTA5.exe")).FileVersion);
+            if (!ScriptHookVDownloads.TryGetValue(game.Build.ToString(), out var suffix))
+            {
+                MessageBox.Show($"No automatic ScriptHookV download for game build {game.Build}. Download it from https://dev-c.com/gtav/scripthookv/ (it must match your game build), copy ScriptHookV.dll and dinput8.dll into the game folder, then run this installer again.");
+                Process.Start("https://dev-c.com/gtav/scripthookv/");
+                Environment.Exit(1);
+            }
+            var url = $"https://dev-c.com/files/ScriptHookV_{suffix}.zip";
+            UpdateStatus("Downloading ScriptHookV for game build " + game.Build);
+            var work = NewTempDir();
+            try
+            {
+                var zip = Path.Combine(work, "shv.zip");
+                HttpHelper.DownloadFile(url, zip, (p) => UpdateStatus("Downloading ScriptHookV " + p + "%"));
+                ZipFile.ExtractToDirectory(zip, work);
+                CopyIfExists(Path.Combine(work, "ScriptHookV.dll"), Path.Combine(root, "ScriptHookV.dll"));
+                CopyIfExists(Path.Combine(work, "dinput8.dll"), Path.Combine(root, "dinput8.dll"));
+                if (!File.Exists(shvPath)) { throw new Exception("ScriptHookV.dll was not in the downloaded archive."); }
+            }
+            finally { TryDeleteDir(work); }
+        }
+
+        private void InstallShvdnNightly(string root)
+        {
+            UpdateStatus("Finding latest ScriptHookVDotNet nightly");
+            string zipUrl = null;
+            try
+            {
+                var json = HttpHelper.DownloadString("https://api.github.com/repos/scripthookvdotnet/scripthookvdotnet-nightly/releases/latest");
+                var m = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"(?<url>https://[^\"]+\\.zip)\"");
+                if (m.Success) { zipUrl = m.Groups["url"].Value; }
+            }
+            catch { /* fall through to the manual fallback below */ }
+            if (zipUrl == null)
+            {
+                MessageBox.Show("Could not find the latest ScriptHookVDotNet nightly. Download it from https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases and copy ScriptHookVDotNet3.dll and the loader .asi into the game folder, then run this installer again.");
+                Process.Start("https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases");
+                Environment.Exit(1);
+            }
+            UpdateStatus("Downloading ScriptHookVDotNet nightly");
+            var work = NewTempDir();
+            try
+            {
+                var zip = Path.Combine(work, "shvdn.zip");
+                HttpHelper.DownloadFile(zipUrl, zip, (p) => UpdateStatus("Downloading ScriptHookVDotNet " + p + "%"));
+                ZipFile.ExtractToDirectory(zip, work);
+                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet3.dll"), Path.Combine(root, "ScriptHookVDotNet3.dll"));
+                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet2.dll"), Path.Combine(root, "ScriptHookVDotNet2.dll"));
+                // Loader .asi — new nightlies call it ScriptHookVDotNet-Loader.asi.
+                // Copy whichever name the zip has, then make sure only one
+                // loader remains: having both .asi files loads SHVDN twice
+                // and breaks every script (NullReferenceException in
+                // GTA.Script..ctor, garbled console).
+                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet-Loader.asi"), Path.Combine(root, "ScriptHookVDotNet-Loader.asi"));
+                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet.asi"), Path.Combine(root, "ScriptHookVDotNet.asi"));
+                if (File.Exists(Path.Combine(root, "ScriptHookVDotNet-Loader.asi")) && File.Exists(Path.Combine(root, "ScriptHookVDotNet.asi")))
+                {
+                    File.Delete(Path.Combine(root, "ScriptHookVDotNet.asi"));
+                }
+                // .ini only if the user doesn't have one — never overwrite
+                // their settings (the timeout tweak is applied below).
+                var srcIni = Path.Combine(work, "ScriptHookVDotNet.ini");
+                var dstIni = Path.Combine(root, "ScriptHookVDotNet.ini");
+                if (File.Exists(srcIni) && !File.Exists(dstIni)) { File.Copy(srcIni, dstIni); }
+                if (!File.Exists(Path.Combine(root, "ScriptHookVDotNet3.dll"))) { throw new Exception("ScriptHookVDotNet3.dll was not in the downloaded archive."); }
+            }
+            finally { TryDeleteDir(work); }
+        }
+
+        private void EnsureScriptTimeout(string root)
+        {
+            const string key = "ScriptTimeoutThreshold";
+            var ini = Path.Combine(root, "ScriptHookVDotNet.ini");
+            try
+            {
+                if (!File.Exists(ini))
+                {
+                    File.WriteAllText(ini, key + "=15000\r\n");
+                    return;
+                }
+                var lines = File.ReadAllLines(ini).ToList();
+                var found = false;
+                for (var i = 0; i < lines.Count; i++)
+                {
+                    var t = lines[i].Trim();
+                    if (t.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        found = true;
+                        if (int.TryParse(t.Substring(key.Length + 1), out var v) && v >= 15000) { return; }
+                        lines[i] = key + "=15000";
+                    }
+                }
+                if (!found) { lines.Add(key + "=15000"); }
+                File.WriteAllLines(ini, lines);
+            }
+            catch { /* timeout tweak is best-effort; a missing/broken ini must not block install */ }
+        }
+
+        private static string NewTempDir()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), "ragecoop-install-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            return dir;
+        }
+
+        private static void TryDeleteDir(string dir)
+        {
+            try { if (Directory.Exists(dir)) { Directory.Delete(dir, true); } } catch { }
+        }
+
+        private static void CopyIfExists(string src, string dst)
+        {
+            if (File.Exists(src)) { File.Copy(src, dst, true); }
         }
 
         private void UpdateStatus(string status)

@@ -12,6 +12,7 @@ namespace RageCoop.Core
             if (File.Exists(destination)) { File.Delete(destination); }
             AutoResetEvent ae = new AutoResetEvent(false);
             WebClient client = new WebClient();
+            client.Headers.Add("User-Agent", "RAGECOOP-Installer");
 
             // TLS only
             ServicePointManager.Expect100Continue = true;
@@ -36,6 +37,7 @@ namespace RageCoop.Core
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             WebClient client = new WebClient();
+            client.Headers.Add("User-Agent", "RAGECOOP-Installer"); // GitHub API rejects requests without one
             return client.DownloadString(url);
         }
     }
