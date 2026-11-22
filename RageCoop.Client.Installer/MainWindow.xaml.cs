@@ -72,12 +72,11 @@ namespace RageCoop.Client.Installer
                 throw new InvalidOperationException("The installer is not meant to be run in the game folder, please extract the zip to somewhere else and run again.");
             }
 
-            // Fresh start: remove anything that isn't a default GTA V file,
-            // so a previous broken install can't survive into this one.
-            // Runs before the prerequisite checks, so they then see the
-            // true state (e.g. SHVDN deleted by the clean gets
-            // re-downloaded fresh below).
-            CleanNonDefaultFiles(root);
+            // Fresh start: remove known mod files, so a previous broken
+            // install can't survive into this one. Runs before the
+            // prerequisite checks, so they then see the true state (e.g.
+            // SHVDN deleted by the clean gets re-downloaded fresh below).
+            CleanModFiles(root);
 
             Directory.CreateDirectory(installPath);
             Log("Installer started. Game folder: " + root + ". OS: " + Environment.OSVersion + ". Installer version: " + TryVer(Assembly.GetExecutingAssembly().Location));
@@ -217,53 +216,45 @@ namespace RageCoop.Client.Installer
             catch (Exception ex) { return "(unreadable: " + ex.Message + ")"; }
         }
 
-        // Vanilla Steam (Legacy) game-root entries, from published
-        // clean-install listings (2018/2019 Steam dir dumps — the root
-        // layout is stable across builds). Anything else at the root is
-        // treated as added by the user or a mod. If a newer game build
-        // adds a vanilla file this list doesn't know, it shows up in the
-        // confirmation dialog, and Steam's "Verify integrity of game
-        // files" restores any vanilla file deleted by mistake.
-        private static readonly HashSet<string> VanillaRootFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        // Files and folders that are unambiguously added by the user or a
+        // mod — never part of a default GTA V install (verified against
+        // published clean-install listings: no vanilla install has any
+        // .asi file, no ScriptHookV / ScriptHookVDotNet files, and no
+        // Scripts / mods / plugins folder). The clean only ever deletes
+        // entries on these lists. Anything it doesn't recognize is left
+        // alone, so it can never delete a default file (e.g. BattlEye
+        // files a newer build adds) or break the game — and the user is
+        // never asked to verify a list.
+        private static readonly HashSet<string> KnownModFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "bink2w64.dll", "common.rpf", "d3dcompiler_46.dll", "d3dcsx_46.dll",
-            "GFSDK_ShadowLib.win64.dll", "GFSDK_TXAA.win64.dll", "GFSDK_TXAA_AlphaResolve.win64.dll",
-            "GTA5.exe", "GTAVLanguageSelect.exe", "GTAVLauncher.exe", "PlayGTAV.exe",
-            "installscript.vdf", "steam_api64.dll", "steam_appid.txt",
-            "x64a.rpf", "x64b.rpf", "x64c.rpf", "x64d.rpf", "x64e.rpf", "x64f.rpf",
-            "x64g.rpf", "x64h.rpf", "x64i.rpf", "x64j.rpf", "x64k.rpf", "x64l.rpf",
-            "x64m.rpf", "x64n.rpf", "x64o.rpf", "x64p.rpf", "x64q.rpf", "x64r.rpf",
-            "x64s.rpf", "x64t.rpf", "x64u.rpf", "x64v.rpf", "x64w.rpf"
+            // ScriptHookV / ASI loader
+            "ScriptHookV.dll", "dinput8.dll", "dsound.dll", "xinput1_4.dll",
+            // ScriptHookVDotNet
+            "ScriptHookVDotNet.dll", "ScriptHookVDotNet2.dll", "ScriptHookVDotNet3.dll",
+            "ScriptHookVDotNet.asi", "ScriptHookVDotNet-Loader.asi", "ScriptHookVDotNet.ini",
+            // Trainers / ASI plugins (the game ships no .asi files at all;
+            // any other *.asi at the root is caught by the extension rule)
+            "NativeTrainer.asi", "Menyoo.asi", "OpenIV.asi",
+            // ReShade / ENB proxies and configs (vanilla ships none of these)
+            "dxgi.dll", "d3d11.dll", "d3d9.dll",
+            "ReShade.ini", "enblocal.ini", "enbseries.ini",
+            // Mod logs (harmless to remove; the game regenerates its own)
+            "ScriptHookV.log", "ScriptHookVDotNet.log", "asiloader.log"
         };
-        private static readonly HashSet<string> VanillaRootFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> KnownModFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Installers", "update", "x64", "_CommonRedist"
+            "Scripts", "mods", "plugins", "menyooStuff", "enbseries"
         };
 
-        // Deletes everything in the game root that isn't a default GTA V
-        // file, so the install starts truly fresh. Only the root level is
-        // scanned: vanilla folders (update, x64, ...) are never entered,
-        // so modified archives inside them are untouched (use Steam
-        // Verify for those). The user sees exactly what will be removed
-        // and confirms first; every deletion is logged. The saved server
-        // address / menu key (RageCoop.Client.Settings.xml) is kept, and
-        // the installer's own files are never deleted.
-        private void CleanNonDefaultFiles(string root)
+        // Deletes known mod files and folders from the game root so the
+        // install starts truly fresh. Only entries on the known-mod lists
+        // are ever deleted — anything unrecognized is left alone, so the
+        // clean can never remove a default file or break the game, and
+        // the user is never asked to verify a list. Runs silently; every
+        // deletion is written to the installer log. The saved server
+        // address / menu key (RageCoop.Client.Settings.xml) is kept.
+        private void CleanModFiles(string root)
         {
-            var exePath = Assembly.GetExecutingAssembly().Location;
-            var ownFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                Path.GetFullPath(exePath),
-                Path.GetFullPath(Path.ChangeExtension(exePath, ".exe.config")),
-                Path.GetFullPath(Path.ChangeExtension(exePath, ".pdb")),
-                Path.GetFullPath(LogPath),
-                // The installer needs these two to proceed (it copies them
-                // into Scripts\RageCoop later), even if the zip was
-                // extracted into the game folder by mistake.
-                Path.Combine(root, "RageCoop.Core.dll"),
-                Path.Combine(root, "RageCoop.Client.dll")
-            };
-
             var filesToDelete = new List<string>();
             var dirsToDelete = new List<string>();
             try
@@ -271,14 +262,12 @@ namespace RageCoop.Client.Installer
                 foreach (var f in Directory.GetFiles(root))
                 {
                     var name = Path.GetFileName(f);
-                    if (VanillaRootFiles.Contains(name) || ownFiles.Contains(Path.GetFullPath(f))) { continue; }
-                    filesToDelete.Add(f);
+                    if (KnownModFiles.Contains(name) || name.EndsWith(".asi", StringComparison.OrdinalIgnoreCase)) { filesToDelete.Add(f); }
                 }
                 foreach (var d in Directory.GetDirectories(root))
                 {
                     var name = Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-                    if (VanillaRootFolders.Contains(name)) { continue; }
-                    dirsToDelete.Add(d);
+                    if (KnownModFolders.Contains(name)) { dirsToDelete.Add(d); }
                 }
             }
             catch (Exception ex)
@@ -289,18 +278,7 @@ namespace RageCoop.Client.Installer
 
             if (filesToDelete.Count == 0 && dirsToDelete.Count == 0)
             {
-                Log("Clean: game folder already has only default files.");
-                return;
-            }
-
-            var preview = new List<string>();
-            foreach (var f in filesToDelete) { preview.Add(Path.GetFileName(f)); }
-            foreach (var d in dirsToDelete) { preview.Add(Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + "\\ (folder)"); }
-            var shown = string.Join("\n- ", preview.Take(15));
-            var more = preview.Count > 15 ? "\n- ...and " + (preview.Count - 15) + " more" : "";
-            if (MessageBox.Show("Clean install: these files and folders in the game folder are not part of a default GTA V install and will be permanently deleted:\n\n- " + shown + more + "\n\nYour saved server address and menu key are kept. If a default file is ever removed by mistake, Steam's 'Verify integrity of game files' restores it.\n\nDelete them?", "Clean install", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
-            {
-                Log("Clean: user declined, kept " + preview.Count + " non-default entries.");
+                Log("Clean: no known mod files found.");
                 return;
             }
 
@@ -466,8 +444,10 @@ namespace RageCoop.Client.Installer
                 if (!HttpHelper.IsZipFile(zip)) { DownloadFailedManual("ScriptHookV", "https://dev-c.com/gtav/scripthookv/"); }
                 try { ZipFile.ExtractToDirectory(zip, work); }
                 catch (InvalidDataException) { DownloadFailedManual("ScriptHookV", "https://dev-c.com/gtav/scripthookv/"); }
-                CopyIfExists(Path.Combine(work, "ScriptHookV.dll"), Path.Combine(root, "ScriptHookV.dll"));
-                CopyIfExists(Path.Combine(work, "dinput8.dll"), Path.Combine(root, "dinput8.dll"));
+                // The DLLs live under bin/ in the archive, so find them by
+                // search instead of assuming the extraction root.
+                CopyFound(FindInDir(work, "ScriptHookV.dll"), Path.Combine(root, "ScriptHookV.dll"));
+                CopyFound(FindInDir(work, "dinput8.dll"), Path.Combine(root, "dinput8.dll"));
                 if (!File.Exists(shvPath)) { throw new Exception("ScriptHookV.dll was not in the downloaded archive."); }
             }
             finally { TryDeleteDir(work); }
@@ -511,15 +491,15 @@ namespace RageCoop.Client.Installer
                 if (!HttpHelper.IsZipFile(zip)) { DownloadFailedManual("ScriptHookVDotNet nightly", "https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases"); }
                 try { ZipFile.ExtractToDirectory(zip, work); }
                 catch (InvalidDataException) { DownloadFailedManual("ScriptHookVDotNet nightly", "https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases"); }
-                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet3.dll"), Path.Combine(root, "ScriptHookVDotNet3.dll"));
-                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet2.dll"), Path.Combine(root, "ScriptHookVDotNet2.dll"));
+                CopyFound(FindInDir(work, "ScriptHookVDotNet3.dll"), Path.Combine(root, "ScriptHookVDotNet3.dll"));
+                CopyFound(FindInDir(work, "ScriptHookVDotNet2.dll"), Path.Combine(root, "ScriptHookVDotNet2.dll"));
                 // Loader .asi — new nightlies call it ScriptHookVDotNet-Loader.asi.
                 // Copy whichever name the zip has, then make sure only one
                 // loader remains: having both .asi files loads SHVDN twice
                 // and breaks every script (NullReferenceException in
                 // GTA.Script..ctor, garbled console).
-                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet-Loader.asi"), Path.Combine(root, "ScriptHookVDotNet-Loader.asi"));
-                CopyIfExists(Path.Combine(work, "ScriptHookVDotNet.asi"), Path.Combine(root, "ScriptHookVDotNet.asi"));
+                CopyFound(FindInDir(work, "ScriptHookVDotNet-Loader.asi"), Path.Combine(root, "ScriptHookVDotNet-Loader.asi"));
+                CopyFound(FindInDir(work, "ScriptHookVDotNet.asi"), Path.Combine(root, "ScriptHookVDotNet.asi"));
                 if (File.Exists(Path.Combine(root, "ScriptHookVDotNet-Loader.asi")) && File.Exists(Path.Combine(root, "ScriptHookVDotNet.asi")))
                 {
                     File.Delete(Path.Combine(root, "ScriptHookVDotNet.asi"));
@@ -527,9 +507,9 @@ namespace RageCoop.Client.Installer
                 }
                 // .ini only if the user doesn't have one — never overwrite
                 // their settings (the timeout tweak is applied below).
-                var srcIni = Path.Combine(work, "ScriptHookVDotNet.ini");
+                var srcIni = FindInDir(work, "ScriptHookVDotNet.ini");
                 var dstIni = Path.Combine(root, "ScriptHookVDotNet.ini");
-                if (File.Exists(srcIni) && !File.Exists(dstIni)) { File.Copy(srcIni, dstIni); }
+                if (srcIni != null && File.Exists(srcIni) && !File.Exists(dstIni)) { File.Copy(srcIni, dstIni); }
                 if (!File.Exists(Path.Combine(root, "ScriptHookVDotNet3.dll"))) { throw new Exception("ScriptHookVDotNet3.dll was not in the downloaded archive."); }
             }
             finally { TryDeleteDir(work); }
@@ -576,10 +556,23 @@ namespace RageCoop.Client.Installer
             try { if (Directory.Exists(dir)) { Directory.Delete(dir, true); } } catch { }
         }
 
-        private static void CopyIfExists(string src, string dst)
+        // Finds a file anywhere under a folder (the download zips don't
+        // all keep their files at the root — ScriptHookV ships its DLLs
+        // under bin/). Returns null when it isn't in the archive at all.
+        private static string FindInDir(string dir, string fileName)
         {
-            if (File.Exists(src)) { File.Copy(src, dst, true); Log("Copied " + Path.GetFileName(src) + " -> " + dst); }
-            else { Log("Skipped copy (not in download): " + Path.GetFileName(src)); }
+            try
+            {
+                var found = Directory.GetFiles(dir, fileName, SearchOption.AllDirectories);
+                return found.Length > 0 ? found[0] : null;
+            }
+            catch { return null; }
+        }
+
+        private static void CopyFound(string src, string dst)
+        {
+            if (src != null && File.Exists(src)) { File.Copy(src, dst, true); Log("Copied " + Path.GetFileName(src) + " -> " + dst); }
+            else { Log("Skipped copy (not in download): " + Path.GetFileName(dst)); }
         }
 
         private void UpdateStatus(string status)
