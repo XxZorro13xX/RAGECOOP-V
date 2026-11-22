@@ -71,6 +71,14 @@ namespace RageCoop.Client.Installer
             {
                 throw new InvalidOperationException("The installer is not meant to be run in the game folder, please extract the zip to somewhere else and run again.");
             }
+
+            // Fresh start: remove anything that isn't a default GTA V file,
+            // so a previous broken install can't survive into this one.
+            // Runs before the prerequisite checks, so they then see the
+            // true state (e.g. SHVDN deleted by the clean gets
+            // re-downloaded fresh below).
+            CleanNonDefaultFiles(root);
+
             Directory.CreateDirectory(installPath);
             Log("Installer started. Game folder: " + root + ". OS: " + Environment.OSVersion + ". Installer version: " + TryVer(Assembly.GetExecutingAssembly().Location));
 
@@ -207,6 +215,127 @@ namespace RageCoop.Client.Installer
         {
             try { return File.Exists(path) ? FileVersionInfo.GetVersionInfo(path).FileVersion : "(missing)"; }
             catch (Exception ex) { return "(unreadable: " + ex.Message + ")"; }
+        }
+
+        // Vanilla Steam (Legacy) game-root entries, from published
+        // clean-install listings (2018/2019 Steam dir dumps — the root
+        // layout is stable across builds). Anything else at the root is
+        // treated as added by the user or a mod. If a newer game build
+        // adds a vanilla file this list doesn't know, it shows up in the
+        // confirmation dialog, and Steam's "Verify integrity of game
+        // files" restores any vanilla file deleted by mistake.
+        private static readonly HashSet<string> VanillaRootFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "bink2w64.dll", "common.rpf", "d3dcompiler_46.dll", "d3dcsx_46.dll",
+            "GFSDK_ShadowLib.win64.dll", "GFSDK_TXAA.win64.dll", "GFSDK_TXAA_AlphaResolve.win64.dll",
+            "GTA5.exe", "GTAVLanguageSelect.exe", "GTAVLauncher.exe", "PlayGTAV.exe",
+            "installscript.vdf", "steam_api64.dll", "steam_appid.txt",
+            "x64a.rpf", "x64b.rpf", "x64c.rpf", "x64d.rpf", "x64e.rpf", "x64f.rpf",
+            "x64g.rpf", "x64h.rpf", "x64i.rpf", "x64j.rpf", "x64k.rpf", "x64l.rpf",
+            "x64m.rpf", "x64n.rpf", "x64o.rpf", "x64p.rpf", "x64q.rpf", "x64r.rpf",
+            "x64s.rpf", "x64t.rpf", "x64u.rpf", "x64v.rpf", "x64w.rpf"
+        };
+        private static readonly HashSet<string> VanillaRootFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Installers", "update", "x64", "_CommonRedist"
+        };
+
+        // Deletes everything in the game root that isn't a default GTA V
+        // file, so the install starts truly fresh. Only the root level is
+        // scanned: vanilla folders (update, x64, ...) are never entered,
+        // so modified archives inside them are untouched (use Steam
+        // Verify for those). The user sees exactly what will be removed
+        // and confirms first; every deletion is logged. The saved server
+        // address / menu key (RageCoop.Client.Settings.xml) is kept, and
+        // the installer's own files are never deleted.
+        private void CleanNonDefaultFiles(string root)
+        {
+            var exePath = Assembly.GetExecutingAssembly().Location;
+            var ownFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                Path.GetFullPath(exePath),
+                Path.GetFullPath(Path.ChangeExtension(exePath, ".exe.config")),
+                Path.GetFullPath(Path.ChangeExtension(exePath, ".pdb")),
+                Path.GetFullPath(LogPath),
+                // The installer needs these two to proceed (it copies them
+                // into Scripts\RageCoop later), even if the zip was
+                // extracted into the game folder by mistake.
+                Path.Combine(root, "RageCoop.Core.dll"),
+                Path.Combine(root, "RageCoop.Client.dll")
+            };
+
+            var filesToDelete = new List<string>();
+            var dirsToDelete = new List<string>();
+            try
+            {
+                foreach (var f in Directory.GetFiles(root))
+                {
+                    var name = Path.GetFileName(f);
+                    if (VanillaRootFiles.Contains(name) || ownFiles.Contains(Path.GetFullPath(f))) { continue; }
+                    filesToDelete.Add(f);
+                }
+                foreach (var d in Directory.GetDirectories(root))
+                {
+                    var name = Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                    if (VanillaRootFolders.Contains(name)) { continue; }
+                    dirsToDelete.Add(d);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("Clean scan failed: " + ex.Message);
+                return;
+            }
+
+            if (filesToDelete.Count == 0 && dirsToDelete.Count == 0)
+            {
+                Log("Clean: game folder already has only default files.");
+                return;
+            }
+
+            var preview = new List<string>();
+            foreach (var f in filesToDelete) { preview.Add(Path.GetFileName(f)); }
+            foreach (var d in dirsToDelete) { preview.Add(Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + "\\ (folder)"); }
+            var shown = string.Join("\n- ", preview.Take(15));
+            var more = preview.Count > 15 ? "\n- ...and " + (preview.Count - 15) + " more" : "";
+            if (MessageBox.Show("Clean install: these files and folders in the game folder are not part of a default GTA V install and will be permanently deleted:\n\n- " + shown + more + "\n\nYour saved server address and menu key are kept. If a default file is ever removed by mistake, Steam's 'Verify integrity of game files' restores it.\n\nDelete them?", "Clean install", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                Log("Clean: user declined, kept " + preview.Count + " non-default entries.");
+                return;
+            }
+
+            // Keep the user's server address / menu key across the clean.
+            var settingsPath = Path.Combine(root, @"Scripts\RageCoop\Data\RageCoop.Client.Settings.xml");
+            byte[] settingsBytes = null;
+            try { if (File.Exists(settingsPath)) { settingsBytes = File.ReadAllBytes(settingsPath); } } catch { }
+
+            var deleted = 0;
+            var failed = new List<string>();
+            foreach (var f in filesToDelete)
+            {
+                try { File.Delete(f); deleted++; Log("Clean deleted file: " + Path.GetFileName(f)); }
+                catch (Exception ex) { failed.Add(Path.GetFileName(f)); Log("Clean could not delete " + f + ": " + ex.Message); }
+            }
+            foreach (var d in dirsToDelete)
+            {
+                try { Directory.Delete(d, true); deleted++; Log("Clean deleted folder: " + d); }
+                catch (Exception ex) { failed.Add(Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) + "\\"); Log("Clean could not delete " + d + ": " + ex.Message); }
+            }
+            if (settingsBytes != null)
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(settingsPath));
+                    File.WriteAllBytes(settingsPath, settingsBytes);
+                    Log("Clean kept saved settings (RageCoop.Client.Settings.xml).");
+                }
+                catch (Exception ex) { Log("Clean could not restore settings: " + ex.Message); }
+            }
+            if (failed.Count > 0)
+            {
+                MessageBox.Show("Clean finished, but could not delete:\n\n- " + string.Join("\n- ", failed) + "\n\nClose whatever is using them and run the installer again.");
+            }
+            Log("Clean done: deleted " + deleted + " entries, " + failed.Count + " failed.");
         }
 
         // Game build -> "legacy_enhanced" part of the ScriptHookV zip name

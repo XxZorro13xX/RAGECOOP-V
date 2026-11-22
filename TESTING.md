@@ -57,7 +57,19 @@ too old itself — ScriptHookV matching your game build, the latest
 SHVDN nightly, LemonUI 2.2 (embedded), .NET Framework 4.8 — removes
 the old `ScriptHookVDotNet.asi` if both loaders are present, and sets
 `ScriptTimeoutThreshold=15000`. It still deletes old `RageCoop.*`
-files itself and keeps `RageCoop.Client.Settings.xml`. Manual
+files itself and keeps `RageCoop.Client.Settings.xml`. Before any of
+that, the installer offers a **clean**: it lists every file and
+folder in the game folder that isn't part of a default GTA V install
+and asks whether to permanently delete them, so a previous broken
+install can't survive into this one. It never enters the vanilla
+`update` / `x64` folders, keeps your saved server address and menu
+key, and never deletes its own files. If a default file is ever
+removed by mistake, Steam's "Verify integrity of game files"
+restores it. The installer also writes
+`RageCoop.Client.Installer.log` next to itself (game folder, OS and
+installer version, versions found, downloads with sizes, every file
+copied, every clean deletion) — send that file if an install goes
+wrong. Manual
 fallback (if a download fails): ScriptHookV from dev-c.com, SHVDN
 nightly from
 `github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases`,
