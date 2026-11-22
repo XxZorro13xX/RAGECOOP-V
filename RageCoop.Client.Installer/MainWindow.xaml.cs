@@ -47,6 +47,7 @@ namespace RageCoop.Client.Installer
                     }
                     catch (Exception ex)
                     {
+                        Log("Installation failed: " + ex);
                         MessageBox.Show("Installation failed: " + ex.ToString());
                         Environment.Exit(1);
                     }
@@ -71,6 +72,7 @@ namespace RageCoop.Client.Installer
                 throw new InvalidOperationException("The installer is not meant to be run in the game folder, please extract the zip to somewhere else and run again.");
             }
             Directory.CreateDirectory(installPath);
+            Log("Installer started. Game folder: " + root + ". OS: " + Environment.OSVersion + ". Installer version: " + TryVer(Assembly.GetExecutingAssembly().Location));
 
             // One-click setup: fetch anything that is missing or too old
             // instead of telling the user to go and find it.
@@ -181,6 +183,32 @@ namespace RageCoop.Client.Installer
         private static readonly Version MinShvdnVersion = new Version(3, 7, 0, 188);
         private static readonly Version MinLemonVersion = new Version(2, 2, 0, 0);
 
+        // Installer log, next to the installer exe (NOT in the game folder,
+        // so it survives the old-files cleanup). Every status update and
+        // every decision (versions found, downloads, copies) is recorded
+        // here, so a bad install can be diagnosed from the log alone
+        // instead of guessing from the game folder afterwards.
+        private static readonly object LogLock = new object();
+        private static readonly string LogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RageCoop.Client.Installer.log");
+
+        private static void Log(string msg)
+        {
+            try
+            {
+                lock (LogLock)
+                {
+                    File.AppendAllText(LogPath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + msg + "\r\n");
+                }
+            }
+            catch { /* logging must never break the install */ }
+        }
+
+        private static string TryVer(string path)
+        {
+            try { return File.Exists(path) ? FileVersionInfo.GetVersionInfo(path).FileVersion : "(missing)"; }
+            catch (Exception ex) { return "(unreadable: " + ex.Message + ")"; }
+        }
+
         // Game build -> "legacy_enhanced" part of the ScriptHookV zip name
         // on dev-c.com, e.g. game 1.0.3889.0 -> ScriptHookV_3889.0_1158.13.zip.
         // Add a row here when a new game build ships; unknown builds fall
@@ -197,6 +225,9 @@ namespace RageCoop.Client.Installer
             bool needShvdn = !File.Exists(shvdnPath) || GetVer(shvdnPath) < MinShvdnVersion;
             bool needLemon = !File.Exists(lemonPath) || GetVer(lemonPath) < MinLemonVersion;
 
+            Log("Found: .NET 4.8 present=" + !needDotNet + ", ScriptHookV=" + TryVer(shvPath) + ", SHVDN=" + TryVer(shvdnPath) + ", LemonUI=" + TryVer(lemonPath));
+            Log("Need: dotnet=" + needDotNet + ", shv=" + needShv + ", shvdn=" + needShvdn + ", lemon=" + needLemon);
+
             if (!needDotNet && !needShv && !needShvdn && !needLemon)
             {
                 EnsureScriptTimeout(root);
@@ -211,6 +242,7 @@ namespace RageCoop.Client.Installer
             if (MessageBox.Show("RAGECOOP needs the following first:\n\n- " + string.Join("\n- ", missing) +
                 "\n\nDownload and install them automatically?", "One-click setup", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
             {
+                Log("User declined automatic download.");
                 MessageBox.Show("Install them manually and run this installer again. The manual steps are in TESTING.md in the repo.");
                 Environment.Exit(1);
             }
@@ -223,6 +255,7 @@ namespace RageCoop.Client.Installer
                 UpdateStatus("Installing LemonUI 2.2");
                 Directory.CreateDirectory(scriptsPath);
                 File.WriteAllBytes(lemonPath, getLemon());
+                Log("Wrote embedded LemonUI 2.2 to " + lemonPath);
             }
             EnsureScriptTimeout(root);
         }
@@ -251,9 +284,11 @@ namespace RageCoop.Client.Installer
                 HttpHelper.DownloadFile(url, installer, (p) => UpdateStatus("Downloading .NET Framework 4.8 " + p + "%"));
                 UpdateStatus("Installing .NET Framework 4.8 (follow the prompts)");
                 Process.Start(installer).WaitForExit();
+                Log(".NET Framework 4.8 installer finished. Present now: " + IsNet48OrLater());
             }
-            catch
+            catch (Exception ex)
             {
+                Log("Failed to download/install .NET Framework 4.8: " + ex.Message);
                 MessageBox.Show("Could not download .NET Framework 4.8. Get it from https://dotnet.microsoft.com/download/dotnet-framework/net48 and run this installer again.");
                 Process.Start("https://dotnet.microsoft.com/download/dotnet-framework/net48");
                 Environment.Exit(1);
@@ -286,6 +321,7 @@ namespace RageCoop.Client.Installer
             }
             var url = $"https://dev-c.com/files/ScriptHookV_{suffix}.zip";
             UpdateStatus("Downloading ScriptHookV for game build " + game.Build);
+            Log("Game build " + game.Build + ", downloading ScriptHookV from " + url);
             var work = NewTempDir();
             try
             {
@@ -297,6 +333,7 @@ namespace RageCoop.Client.Installer
                 // could not be found"). The Referer is what makes this a
                 // real zip; the IsZipFile check is the safety net.
                 HttpHelper.DownloadFile(url, zip, (p) => UpdateStatus("Downloading ScriptHookV " + p + "%"), "https://dev-c.com/gtav/scripthookv/");
+                Log("ScriptHookV download: " + new FileInfo(zip).Length + " bytes, valid zip: " + HttpHelper.IsZipFile(zip));
                 if (!HttpHelper.IsZipFile(zip)) { DownloadFailedManual("ScriptHookV", "https://dev-c.com/gtav/scripthookv/"); }
                 try { ZipFile.ExtractToDirectory(zip, work); }
                 catch (InvalidDataException) { DownloadFailedManual("ScriptHookV", "https://dev-c.com/gtav/scripthookv/"); }
@@ -311,6 +348,7 @@ namespace RageCoop.Client.Installer
         // exactly what to do by hand instead of showing a stack trace.
         private void DownloadFailedManual(string name, string pageUrl)
         {
+            Log("Download failed validation for " + name + " (not a usable file). Sent user to " + pageUrl + ".");
             MessageBox.Show("The automatic " + name + " download didn't work (the site returned something that isn't the file). Download it yourself from " + pageUrl + ", copy the files into the game folder, then run this installer again.");
             Process.Start(pageUrl);
             Environment.Exit(1);
@@ -334,11 +372,13 @@ namespace RageCoop.Client.Installer
                 Environment.Exit(1);
             }
             UpdateStatus("Downloading ScriptHookVDotNet nightly");
+            Log("Latest SHVDN nightly: " + zipUrl);
             var work = NewTempDir();
             try
             {
                 var zip = Path.Combine(work, "shvdn.zip");
                 HttpHelper.DownloadFile(zipUrl, zip, (p) => UpdateStatus("Downloading ScriptHookVDotNet " + p + "%"));
+                Log("SHVDN download: " + new FileInfo(zip).Length + " bytes, valid zip: " + HttpHelper.IsZipFile(zip));
                 if (!HttpHelper.IsZipFile(zip)) { DownloadFailedManual("ScriptHookVDotNet nightly", "https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases"); }
                 try { ZipFile.ExtractToDirectory(zip, work); }
                 catch (InvalidDataException) { DownloadFailedManual("ScriptHookVDotNet nightly", "https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases"); }
@@ -354,6 +394,7 @@ namespace RageCoop.Client.Installer
                 if (File.Exists(Path.Combine(root, "ScriptHookVDotNet-Loader.asi")) && File.Exists(Path.Combine(root, "ScriptHookVDotNet.asi")))
                 {
                     File.Delete(Path.Combine(root, "ScriptHookVDotNet.asi"));
+                    Log("Deleted old ScriptHookVDotNet.asi (both loaders were present).");
                 }
                 // .ini only if the user doesn't have one — never overwrite
                 // their settings (the timeout tweak is applied below).
@@ -408,11 +449,13 @@ namespace RageCoop.Client.Installer
 
         private static void CopyIfExists(string src, string dst)
         {
-            if (File.Exists(src)) { File.Copy(src, dst, true); }
+            if (File.Exists(src)) { File.Copy(src, dst, true); Log("Copied " + Path.GetFileName(src) + " -> " + dst); }
+            else { Log("Skipped copy (not in download): " + Path.GetFileName(src)); }
         }
 
         private void UpdateStatus(string status)
         {
+            Log(status);
             Dispatcher.BeginInvoke(new Action(() => Status.Content = status));
         }
 
